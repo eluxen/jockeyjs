@@ -66,14 +66,14 @@
                 delete dispatcher.callbacks[envelope.id];
             };
 
-	    var src = "jockey://" + type + "/" + envelope.id + "?" + encodeURIComponent(JSON.stringify(envelope));
+        var src = "jockey://" + type + "/" + envelope.id + "?" + encodeURIComponent(JSON.stringify(envelope));
             var iframe = document.createElement("iframe"); 
             iframe.setAttribute("src", src); 
             document.documentElement.appendChild(iframe); 
             iframe.parentNode.removeChild(iframe); 
             iframe = null; 
-	  }
-	};   
+      }
+    };   
 
     var Jockey = {
         listeners: {},
@@ -188,8 +188,8 @@
     // From here: http://stackoverflow.com/questions/4460205/detect-ipad-iphone-webview-via-javascript
 
     var UIWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(navigator.userAgent);
-	var isAndroid = navigator.userAgent.toLowerCase().indexOf("android") > -1;
-	
+    var isAndroid = navigator.userAgent.toLowerCase().indexOf("android") > -1;
+    
     if ((iOS && UIWebView) || isAndroid) { 
         Jockey.dispatcher = Dispatcher;
     } else {
