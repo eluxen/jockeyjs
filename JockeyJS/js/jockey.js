@@ -114,6 +114,10 @@
 
         messageCount: 0,
 
+        targetDomain: '*',
+
+        targetWindow: window.parent,
+
         on: function(type, fn) {
             if (!this.listeners.hasOwnProperty(type) || !this.listeners[type] instanceof Array) {
                 this.listeners[type] = [];
@@ -191,11 +195,9 @@
             });
         },
 
-        activateIframeDispatcher: function(targetDomain, targetWindow) {
-            this.targetDomain = targetDomain || '*';
-            this.targetWindow = targetWindow || window.parent;
-            window.addEventListener("message", this.onMessageRecieved.bind(this), false);
-            this.dispatchers.push(IframeDispatcher);
+        restrictIframeDispatcher: function(targetDomain, targetWindow) {
+            this.targetDomain = targetDomain;
+            this.targetWindow = targetWindow;
         },
 
         // Handles postMessage events when iframeDispatcher is used
@@ -245,6 +247,9 @@
     if ((iOS && UIWebView) || isAndroid) {
         Jockey.dispatchers.push(nativeDispatcher);
     }
+
+    Jockey.dispatchers.push(IframeDispatcher);
+    window.addEventListener("message", this.onMessageRecieved.bind(this), false);
 
     window.Jockey = Jockey;
 })();
