@@ -103,7 +103,7 @@
                 delete dispatcher.callbacks[envelope.id];
             };
 
-            targetWindow.postMessage({ type: type, envelope: envelope }, Jockey.targetDomain);
+            Jockey.targetWindow.postMessage({ type: type, envelope: envelope }, Jockey.targetDomain);
         }
     };
 
@@ -192,23 +192,24 @@
         },
 
         activateIframeDispatcher: function(targetDomain, targetWindow) {
-            this.targetDomain = targetDomain || '*'
-            this.targetWindow = targetWindow || window.parent
+            this.targetDomain = targetDomain || '*';
+            this.targetWindow = targetWindow || window.parent;
             window.addEventListener("message", this.onMessageRecieved.bind(this), false);
             this.dispatchers.push(IframeDispatcher);
         },
 
         // Handles postMessage events when iframeDispatcher is used
         onMessageRecieved: function(event) {
-            if (this.targetDomain != '*' && this.targetDomain != event.origin)
+            if (this.targetDomain != '*' && this.targetDomain != event.origin) {
                 return;
+            }
 
             var envelope = event.data.envelope;
-            if (event.data.type == "jockeyEvent")
+            if (event.data.type == "jockeyEvent") {
                 this.trigger(envelope.type, envelope.id, envelope.payload);
-            else if (event.data.type == "jockeyCallback")
+            } else if (event.data.type == "jockeyCallback") {
                 this.triggerCallback(event.data.envelope.id);
-
+            }
         },
 
         createEnvelope: function(id, type, payload) {
