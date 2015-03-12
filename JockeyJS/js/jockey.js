@@ -103,14 +103,14 @@
                 delete dispatcher.callbacks[envelope.id];
             };
 
-            Jockey.targetWindow.postMessage({ type: type, envelope: envelope }, Jockey.targetDomain);
+            targetWindow.postMessage({ type: type, envelope: envelope }, Jockey.targetDomain);
         }
     };
 
     var Jockey = {
         listeners: {},
 
-        dispatcher: null,
+        dispatchers: [],
 
         messageCount: 0,
 
@@ -141,7 +141,9 @@
 
             var envelope = this.createEnvelope(this.messageCount, type, payload);
 
-            this.dispatcher.send(envelope, complete);
+            this.dispatchers.forEach(function(dispatcher) {
+                dispatcher.send(envelope, complete);
+            });
 
             this.messageCount += 1;
         },
@@ -159,7 +161,9 @@
                 executedCount += 1;
 
                 if (executedCount >= listenerList.length) {
-                    self.dispatcher.sendCallback(messageId);
+                    self.dispatchers.forEach(function(dispatcher) {
+                        dispatcher.sendCallback(messageId);
+                    });
                 }
             };
 
@@ -182,28 +186,29 @@
         // This will trigger the callback passed to the send() function for
         // a given message.
         triggerCallback: function(id) {
-            this.dispatcher.triggerCallback(id);
+            this.dispatchers.forEach(function(dispatcher) {
+                dispatcher.triggerCallback(id);
+            });
         },
 
         activateIframeDispatcher: function(targetDomain, targetWindow) {
-            this.targetDomain = targetDomain || '*';
-            this.targetWindow = targetWindow || window.parent;
-            this.dispatcher = IframeDispatcher;
+            this.targetDomain = targetDomain || '*'
+            this.targetWindow = targetWindow || window.parent
             window.addEventListener("message", this.onMessageRecieved.bind(this), false);
+            this.dispatchers.push(IframeDispatcher);
         },
 
         // Handles postMessage events when iframeDispatcher is used
         onMessageRecieved: function(event) {
-            if (this.targetDomain != '*' && this.targetDomain != event.origin) {
+            if (this.targetDomain != '*' && this.targetDomain != event.origin)
                 return;
-            }
 
             var envelope = event.data.envelope;
-            if (event.data.type == "jockeyEvent") {
+            if (event.data.type == "jockeyEvent")
                 this.trigger(envelope.type, envelope.id, envelope.payload);
-            } else if (event.data.type == "jockeyCallback") {
+            else if (event.data.type == "jockeyCallback")
                 this.triggerCallback(event.data.envelope.id);
-            }
+
         },
 
         createEnvelope: function(id, type, payload) {
@@ -214,13 +219,6 @@
                 payload: payload
             };
         }
-    };
-
-    // i.e., on a Desktop browser.
-    var nullDispatcher = {
-        send: function(envelope, complete) { complete(); },
-        triggerCallback: function() {},
-        sendCallback: function() {}
     };
 
     // Dispatcher detection. Currently only supports iOS.
@@ -244,9 +242,7 @@
     var isAndroid  = navigator.userAgent.toLowerCase().indexOf("android") > -1;
 
     if ((iOS && UIWebView) || isAndroid) {
-        Jockey.dispatcher = nativeDispatcher;
-    } else {
-        Jockey.dispatcher = nullDispatcher;
+        Jockey.dispatchers.push(nativeDispatcher);
     }
 
     window.Jockey = Jockey;
