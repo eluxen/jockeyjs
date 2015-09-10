@@ -201,16 +201,24 @@
         },
 
         // Handles postMessage events when iframeDispatcher is used
-        onMessageRecieved: function(event) {
-            if (this.targetDomain != '*' && this.targetDomain != event.origin) {
+        onMessageReceived: function(event) {
+            currentLocation = window.location.origin
+            if (!currentLocation) { // IE
+                currentLocation = window.location.protocol + "//" +
+                                  window.location.hostname +
+                                  (window.location.port ? ':' + window.location.port: '');
+            }
+
+            if (event.origin == currentLocation ||
+                (Jockey.targetDomain != '*' && Jockey.targetDomain != event.origin)) {
                 return;
             }
 
             var envelope = event.data.envelope;
             if (event.data.type == "jockeyEvent") {
-                this.trigger(envelope.type, envelope.id, envelope.payload);
+                Jockey.trigger(envelope.type, envelope.id, envelope.payload);
             } else if (event.data.type == "jockeyCallback") {
-                this.triggerCallback(event.data.envelope.id);
+                Jockey.triggerCallback(event.data.envelope.id);
             }
         },
 
@@ -249,7 +257,7 @@
     }
 
     Jockey.dispatchers.push(IframeDispatcher);
-    window.addEventListener("message", this.onMessageRecieved.bind(this), false);
+    window.addEventListener("message", Jockey.onMessageReceived, false);
 
     window.Jockey = Jockey;
 })();
